@@ -87,7 +87,7 @@ $ celery -A mytasks worker --loglevel=info
 现在我们已经有一个celery队列了，我门只需要将工作所需的参数放入队列即可
 
 ```python
-# trigger.py
+# celery.py
 # -*-coding:utf-8 -*-
 
 from tasks import add
@@ -153,15 +153,13 @@ CELERY_ROUTES = {
 
 # 周期性任务配置
 CELERYBEAT_SCHEDULE = {
+    # 周期任务
     'add-every-30-seconds': {
         'task': 'tasks.add',
         'schedule': timedelta(seconds=30),
         'args': (16, 16)
     },
-}
-
-# 周期性任务配置crontab
-CELERYBEAT_SCHEDULE = {
+    # 定时任务
     # Executes every Monday morning at 7:30 A.M
     'add-every-monday-morning': {
         'task': 'tasks.add',
@@ -239,24 +237,24 @@ def add(x, y):
 
   在配置文件中指定CELERY_ANNOTATIONS属性的值。
 
-  ```python
-  # config.py
-  # -*-coding:utf-8 -*-
-  
-  def on_success(self, retval, task_id, args, kwargs):
-      print 'task done: {0}'.format(retval)
-      return super(MyTask, self).on_success(retval, task_id, args, kwargs)
-      
-  def on_failure(self, exc, task_id, args, kwargs, einfo):
-      print 'task fail, reason: {0}'.format(exc)
-      return super(MyTask, self).on_failure(exc, task_id, args, kwargs, einfo)
-  
-  # 针对任务add，当发生执行成功或失败的时候所执行的操作
-  CELERY_ANNOTATIONS = {'tasks.add': 
-                        {'on_failure': my_on_failure,
-                         'on_success':my_on_failure}
-                       }   
-  ```
+```python
+# config.py
+# -*-coding:utf-8 -*-
+
+def on_success(self, retval, task_id, args, kwargs):
+    print 'task done: {0}'.format(retval)
+    return super(MyTask, self).on_success(retval, task_id, args, kwargs)
+    
+def on_failure(self, exc, task_id, args, kwargs, einfo):
+    print 'task fail, reason: {0}'.format(exc)
+    return super(MyTask, self).on_failure(exc, task_id, args, kwargs, einfo)
+
+# 针对任务add，当发生执行成功或失败的时候所执行的操作
+CELERY_ANNOTATIONS = {'tasks.add': 
+                      {'on_failure': my_on_failure,
+                       'on_success':my_on_failure}
+                     }   
+```
 
 ### 绑定任务为实例方法
 
@@ -274,11 +272,110 @@ def add(self, x, y):
     return x + y
 ```
 
-执行中的任务获取到了自己执行任务的各种信息，可以根据这些信息做很多其他操作，例如判断链式任务是否到结尾等等
+让被修饰的函数add成为 task 对象的绑定方法，这样就相当于被修饰的函数 add 成了 task 的实例方法，可以调用 self 获取当前 task 实例的很多状态及属性。
 
-### 
+request属性文档：[celery.task.request](http://docs.celeryproject.org/en/latest/userguide/tasks.html#task-request-info)
 
+### 任务状态回调
 
+在实际应用场景中得知实时任务状态是很常见的需求。Celery的默认任务状态如下所示：
+
+|  参数   |     说明     |
+| :-----: | :----------: |
+| PENDING |  任务等待中  |
+| STARTED |  任务已开始  |
+| SUCCESS | 任务执行成功 |
+| FAILURE | 任务执行失败 |
+|  RETRY  | 任务将被重试 |
+| REVOKED |   任务取消   |
+
+实现实时追踪摸个任务的执行进度，可以通过自定义一个任务状态并通过回调将任务进度返回。
+
+```python
+# tasks.py
+# -*-coding:utf-8 -*-
+
+import time
+from celery import Celery
+
+@app.task(bind=True)
+def update_progress(self):
+    for i in range(0):
+        time.sleep(0.1)
+        self.update_state(state="PROGRESS", meta={'p': i*10})
+    return 'finish'
+```
+
+sadasdasd
+
+```python
+# celery.py
+# -*-coding:utf-8 -*-
+
+import sys
+from task import update_progress
+
+def show_progress(body):
+    result = body.get('result')
+    if body.get('status') == 'PROGRESS':
+        # 在屏幕上实时看到输出信息
+        sys.stdout.write('\r任务进度: {0}%'.format(res.get('p')))
+        sys.stdout.flush()
+    else:
+        print('\r' + result)
+        
+if __name__ == '__main__':
+	result = show_progress.delay()
+	print result.get(on_message=show_progress, propagate=False)
+```
+
+```python
+# config.py
+# -*-coding:utf-8 -*-
+
+# 中国使用上海时区
+CELERY_TIMEZONE = 'Asia/Shanghai'
+```
+
+### 定时/周期任务
+
+可以通过定义配置文件中可以看到CELERYBEAT_SCHEDULE键值来新建定时任务或周期任务。
+
+`schedule`：任务执行的时间安排。周期执行选择datetime.timedelta；定期执行选择crontab。具体周期配置参考[crontab-schedules](http://docs.celeryproject.org/en/latest/userguide/periodic-tasks.html#crontab-schedules)
+
+定时任务需要用到datetime模块时，需要校准时区，默认UTC。
+
+然后将配置好的配置文件绑定到任务上：
+
+```python
+# tasks.py
+# -*-coding:utf-8 -*-
+
+from config.py import *
+
+app = Celery('mytasks', 
+             backend='redis://:password@host:port/db',
+             broker='redis://:password@host:port/db')
+app.config_from_object('config')
+
+@app.task(bind=True)
+def period_task(self):
+    print('period task done: {0}'.format(self.request.id))
+```
+
+最后启动worker，并运行 beat，监听并自动触发定时/周期性任务：
+
+```shell
+$ celery -A mytasks worker --loglevel=info
+# 每十秒扫瞄一次任务，检查知否有新任务加入。beat会触发定时/周期性任务在改后台自动执行
+$ celery -A mytasks beat -l debug --max-interval=10 
+```
+
+### 链式任务
+
+### 调用任务
+
+### 关于 AsyncResult
 
 ## 参考文档
 
