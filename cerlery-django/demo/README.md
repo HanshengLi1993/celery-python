@@ -3,6 +3,11 @@
 
 
 
+
+
+
+
+
 celery -A demo worker -l debug
 
 celery -A demo beat -l debug --max-interval=10 # 每十秒扫瞄任务
@@ -17,3 +22,10 @@ python3 manage.py runserver 0.0.0.0:8001#启动django的应用，可以动态的
 
 python3 manage.py celery beat #应该是用来监控任务变化的
 
+python3 manage.py  celery worker -c 6 -l debug  #任务执行进程，worker进程
+
+
+
+## 参考文档
+
+https://blog.csdn.net/Vintage_1/article/details/47664297
