@@ -17,4 +17,3 @@ python3 manage.py runserver 0.0.0.0:8001#启动django的应用，可以动态的
 
 python3 manage.py celery beat #应该是用来监控任务变化的
 
-python3 manage.py  celery worker -c 6 -l debug  #任务执行进程，worker进程
