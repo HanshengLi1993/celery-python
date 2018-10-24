@@ -6,14 +6,10 @@ Celery （芹菜）是基于Python开发的分布式任务队列。它支持使�
 
 ## 架构设计
 
-<<<<<<< HEAD
-![](https://github.com/HanshengLi1993/celery-python/blob/master/images/20171127175925062.png)
-=======
 
 ![](https://github.com/HanshengLi1993/celery-python/blob/master/images/20171127175925062.png)
 
 
->>>>>>> eef6d9adbc509e01bf9781d36594de5535739c26
 
 ### 核心部件
 
