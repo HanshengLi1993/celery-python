@@ -4,7 +4,7 @@
 
 使用celery代替crontab实现实时添加定时任务的效果，并且结合django的后台功能管理这些任务。
 
-![](C:\Users\F1333239\Desktop\2018-10-22\celery-python\cerlery-django\demo\images\main_page.bmp)
+![](https://github.com/HanshengLi1993/celery-python/tree/master/cerlery-django/demo/images/main_page.bmp)
 
 ## 环境配置
 
@@ -36,7 +36,7 @@ $ python manage.py startapp home
 
 最终得到的目录如下所示：
 
-![](C:\Users\F1333239\Desktop\2018-10-22\celery-python\cerlery-django\demo\images\project_index.bmp)
+![](https://github.com/HanshengLi1993/celery-python/tree/master/cerlery-django/demo/images/project_index.bmp)
 
 ### 加入celery配置
 
@@ -138,7 +138,7 @@ $ celery flower --port=8000 --broker=redis://@127.0.0.1:6379/0
 
 效果展示
 
-![](C:\Users\F1333239\Desktop\2018-10-22\celery-python\cerlery-django\demo\images\function_display.bmp)
+![](https://github.com/HanshengLi1993/celery-python/tree/master/cerlery-django/demo/images/function_display.bmp)
 
 - Crontab:管理任务的执行时间
 - Interval：管理任务的执行周期
@@ -148,13 +148,13 @@ $ celery flower --port=8000 --broker=redis://@127.0.0.1:6379/0
 
 在`Crontab`，`Interval`中设置好时间配置后，进入`Periodic tasks`中添加任务，让其自动执行。
 
-![](C:\Users\F1333239\Desktop\2018-10-22\celery-python\cerlery-django\demo\images\crontabs.bmp)
+![](https://github.com/HanshengLi1993/celery-python/tree/master/cerlery-django/demo/images/crontabs.bmp)
 
-![](C:\Users\F1333239\Desktop\2018-10-22\celery-python\cerlery-django\demo\images\intervals.bmp)
+![](https://github.com/HanshengLi1993/celery-python/tree/master/cerlery-django/demo/images/intervals.bmp)
 
-![](C:\Users\F1333239\Desktop\2018-10-22\celery-python\cerlery-django\demo\images\periodic tasks.bmp)
+![](https://github.com/HanshengLi1993/celery-python/tree/master/cerlery-django/demo/images/periodic tasks.bmp)
 
-![](C:\Users\F1333239\Desktop\2018-10-22\celery-python\cerlery-django\demo\images\periodic tasks add.bmp)
+![](https://github.com/HanshengLi1993/celery-python/tree/master/cerlery-django/demo/images/periodic tasks add.bmp)
 
 - Name: 这一定期任务的注册名
 - Task (registered): 可以选择所有已经注册的task之一, 例如前面的add function
@@ -165,7 +165,7 @@ $ celery flower --port=8000 --broker=redis://@127.0.0.1:6379/0
 - Arguments: 用于传参数到task中
 - Execution Options: 更高级的设置
 
-![](C:\Users\F1333239\Desktop\2018-10-22\celery-python\cerlery-django\demo\images\flower dashboard.bmp)
+![](https://github.com/HanshengLi1993/celery-python/tree/master/cerlery-django/demo/images/flower dashboard.bmp)
 
 flower的更多用法参考[flower-real-time-celery-web-monitor](http://docs.celeryproject.org/en/latest/userguide/monitoring.html#flower-real-time-celery-web-monitor)
 
@@ -175,11 +175,11 @@ task自发现：
 
 在django web server和celery beat、celery worker都启动着的情况下，修改`./demo/home/tasks.py`文件，新增task function 后,在上图`Task (registered)`下拉列表中能实时看到新增的task，验证了Django的`autodiscover_tasks`功能有效。同时，beat的服务扫描可以发现新增的crontab任务，并尝试去自动执行。
 
-![](C:\Users\F1333239\Desktop\2018-10-22\celery-python\cerlery-django\demo\images\beat.bmp)
+![](https://github.com/HanshengLi1993/celery-python/tree/master/cerlery-django/demo/images/beat.bmp)
 
 但在不重启celery worker的情况下，worker无法发现新添加的task任务，导致报错。
 
-![](C:\Users\F1333239\Desktop\2018-10-22\celery-python\cerlery-django\demo\images\error task.bmp)
+![](https://github.com/HanshengLi1993/celery-python/tree/master/cerlery-django/demo/images/error task.bmp)
 
 在celery4.2版本后加入了`--autoreload`启动参数，在原生的celery中，--autoreload要搭配`CELERY_IMPORT`或`include`设定来用（autoreload这两项设定中的module文件），可以解决worker的任务自发现的问题。但由于`django-celery`模块不再更新，无法支持celery4.2，因此本功能不发实现。
 
