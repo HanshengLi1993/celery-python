@@ -157,7 +157,7 @@ $ curl -X POST -d '{"args":["hello"]}' http://localhost:8888/apply-async/example
 
 解决方案：
 
-- 建立多个任务queue，把大量的任务分发到不同的queue中，减轻单个queue时可能出现的任务数量过载。具体参数设置参考([Message Routing](http://docs.jinkan.org/docs/celery/configuration.html#id18))[http://docs.jinkan.org/docs/celery/configuration.html#message-routing]
+- 建立多个任务queue，把大量的任务分发到不同的queue中，减轻单个queue时可能出现的任务数量过载。具体参数设置参考[Message Routing](http://docs.jinkan.org/docs/celery/configuration.html#id18)
 - 搭建高可用的RabbitMQ集群，将celery的worker与tornado的Web Server分离。使用分布式celery执行任务，增加队列消息消费速度。若本项目部署在K8S环境中可通过监控任务队列数量来实现worker的HPA。
 - 启动多个celery worker监听任务队列，使用多进程并发消费任务队列，celery命令可以通过-concurrency参数来指定用来执行任务而prefork的worker进程，如果所有的worker都在执行任务，那么新添加的任务必须要等待有一个正在执行的任务完成后才能被执行，默认的concurrency数量是机器上CPU的数量。另外，celery是支持好几个并发模式的，有prefork，threading，协程（gevent，eventlet），prefork在celery的介绍是，默认是用了multiprocess来实现的；可以通过-p参数指定其他的并发模型，如gevent（需自己配置好gevent环境）。
 
