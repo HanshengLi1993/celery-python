@@ -12,7 +12,7 @@ Tornado在设计之初就考虑到了性能因素，旨在解决C10K问题，这
 
 tornado接到请求后，可以把所有的复杂业务逻辑处理、数据库操作以及IO等各种耗时的同步任务交给celery，celery将任务存入RabbitMQ的任务队列中，然后使用worker异步处理完后，再返回给tornado。由此可以看出tornado和celery的交互是异步的，那么整个服务是完全异步的。再加上在tornado中使用异步装饰器，即可实现Web Server的异步非阻塞。
 
-![](C:\Users\F1333239\Desktop\2018-10-22\celery-python\celery-tornado\images\539914515-5b47570ad5364_articlex.png)
+![](https://github.com/HanshengLi1993/celery-python/blob/master/celery-tornado/images/539914515-5b47570ad5364_articlex.png)
 
 
 
