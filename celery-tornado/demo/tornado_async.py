@@ -5,6 +5,7 @@ from tornado.web import asynchronous, RequestHandler, Application
 import tasks
 
 import tcelery
+
 tcelery.setup_nonblocking_producer()
 
 
@@ -43,7 +44,6 @@ application = Application([
     (r"/gen-async-sleep", GenAsyncHandler),
     (r"/gen-async-sleep-add", GenMultipleAsyncHandler),
 ])
-
 
 if __name__ == "__main__":
     application.listen(8887)
